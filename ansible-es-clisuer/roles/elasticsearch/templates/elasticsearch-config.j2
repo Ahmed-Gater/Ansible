@@ -1,0 +1,32 @@
+################################### Cluster ###################################
+{% if cluster.name is defined %}
+cluster.name: {{ cluster.name }}
+{% endif %}
+
+
+##################################### Node #####################################
+node.name: "{{ ansible_hostname }}-node"
+node.master: true
+node.data: true
+
+
+##################################### Path #####################################
+{% if path.data is defined %}
+path.data: {{ path.data }}
+{% endif %}
+
+{% if path.log is defined %}
+path.log: {{ path.log }}
+{% endif %}
+
+############################## Network And HTTP ###############################
+#{% if network.bind_host is defined %}
+#network.bind_host: {{ network.bind_host }}
+#{% endif %}
+
+{% for props in network %}
+  {% for key, value in props.iteritems() %}
+network.{{ key }}: {{ value }}
+  {% endfor %}
+{% endfor %}
+

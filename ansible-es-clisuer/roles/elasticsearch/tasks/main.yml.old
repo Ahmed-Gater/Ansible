@@ -1,0 +1,58 @@
+# - name: Including variables
+#   include_vars: es_vars.yml
+ - name: Stopping Elasticsearch Service
+   service: name=elasticsearch state=stopped
+ 
+ - name: Cleaning Plugin Direcroty 
+   file: state=absent path="{{es_root_dir}}/elasticsearch-{{es_version}}/plugins"
+
+ - name: Creates ElasticSearch Install Directory
+   file: path="{{es_root_dir}}" state=directory
+
+ - name: Download Elasticsearch Binaries
+   get_url: dest={{es_root_dir}} url={{es_download_url}}/{{es_version}}/elasticsearch-{{es_version}}.tar.gz
+
+ - name: Unarchive Elasticsearch Binaries
+   unarchive: src={{es_root_dir}}/elasticsearch-{{es_version}}.tar.gz dest={{es_root_dir}}
+
+ - name: Removing Elasticsearch Tar file
+   file: state=absent path="{{ es_root_dir}}/elasticsearch-{{es_version}}.tar.gz"
+ - name: Creating Elasticsearch Group
+   group: name=elasticsearch
+
+ - name: Creating Elasticsearch User
+   user: name=elasticsearch group=elasticsearch password=$6$Som3S@lt$ep/Y7RxO7.8P7tvhbBBLRp9I2XGFr19.uir4FuB9/X1eO0WwRcxQO4ezLHhcv/2/wKd9dPbu8nJG0DMVVbd2w.
+
+ - name: Changing owner for es_root_dir
+   file: dest={{es_root_dir}} owner=elasticsearch group=elasticsearch recurse=yes
+
+ - name: Deploying Service Elasticsearch
+   template: src=elasticsearch-service.j2 dest=/etc/init.d/elasticsearch owner=root group=root mode="u=rwx,g=rx,o=rx"
+
+ - name: Installing kopf Plugin
+   shell: "{{ es_root_dir }}/elasticsearch-{{ es_version }}/bin/plugin install lmenezes/elasticsearch-kopf/{{kopf_version}}"
+   become: yes
+   become_user: elasticsearch
+
+ - name: Installing License Plugin
+   shell: /usr/local/elasticsearch/elasticsearch-{{es_version}}/bin/plugin install license
+   become: yes
+   become_user: elasticsearch
+  
+ - name: Installing Marvel Agent Plugin
+   shell: "{{ es_root_dir }}/elasticsearch-{{es_version}}/bin/plugin install marvel-agent"
+   become: yes
+   become_user: elasticsearch
+
+ - name: Installing Watcher
+   shell: "{{ es_root_dir }}/elasticsearch-{{es_version}}/bin/plugin install watcher"
+   become: yes
+   become_user: elasticsearch
+
+ - name: Installing Graph
+   shell: "{{ es_root_dir }}/elasticsearch-{{es_version}}/bin/plugin install graph"
+   become: yes
+   become_user: elasticsearch
+
+ - name: Stating Elasticsearch Service
+   service: name=elasticsearch state=started enabled=yes 

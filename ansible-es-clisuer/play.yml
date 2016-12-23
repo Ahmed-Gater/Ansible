@@ -1,0 +1,5 @@
+---
+- name: Installing Elasticsearch Data Nodes
+  hosts: localhost
+  roles: 
+   - elasticsearch

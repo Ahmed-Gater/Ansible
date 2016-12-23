@@ -1,0 +1,51 @@
+# - name: Including variables
+
+ - name: Stopping Elasticsearch Service
+   service: name=elasticsearch state=stopped
+ 
+ - name: Cleaning Plugin Direcroty 
+   file: state=absent path="{{es_root_dir}}/elasticsearch-{{es_version}}/plugins"
+
+ - name: Creates ElasticSearch Install Directory
+   file: path="{{es_root_dir}}" state=directory
+
+ - name: Download Elasticsearch Binaries
+   get_url: dest={{es_root_dir}} url={{es_download_url}}/{{es_version}}/elasticsearch-{{es_version}}.tar.gz
+   
+
+ - name: Unarchive Elasticsearch Binaries
+   unarchive: src={{es_root_dir}}/elasticsearch-{{es_version}}.tar.gz dest={{es_root_dir}}
+
+ - name: Removing Elasticsearch Tar file
+   file: state=absent path="{{ es_root_dir}}/elasticsearch-{{es_version}}.tar.gz"
+ - name: Creating Elasticsearch Group
+   group: name=elasticsearch
+
+ - name: Creating Elasticsearch User
+   user: name=elasticsearch group=elasticsearch password=$6$Som3S@lt$ep/Y7RxO7.8P7tvhbBBLRp9I2XGFr19.uir4FuB9/X1eO0WwRcxQO4ezLHhcv/2/wKd9dPbu8nJG0DMVVbd2w.
+
+ - name: Changing owner for es_root_dir
+   file: dest={{es_root_dir}} owner=elasticsearch group=elasticsearch recurse=yes
+
+ - name: Deploying Service Elasticsearch
+   template: src=elasticsearch-service.j2 dest=/etc/init.d/elasticsearch owner=root group=root mode="u=rwx,g=rx,o=rx"
+ 
+ - name: Installing Plugins " {{ es_plugins }}" 
+   shell: "{{ es_root_dir }}/elasticsearch-{{es_version}}/bin/plugin install {{ item }}"
+   with_items: "{{ es_plugins }}"  
+   become: yes
+   become_user: elasticsearch 
+ 
+ - name: Creating Data Directory
+   file: state=directory path={{ path_data }} owner=elasticsearch group=elasticsearch 
+   when: path_data is defined
+
+ - name: Creating Log Directory
+   file: state=directory path={{ path_log }} owner=elasticsearch group=elasticsearch
+   when: path_log is defined
+
+ - name: Elasticsearch Configuration file
+   template: src=elasticsearch-config.j2 dest={{es_root_dir}}/elasticsearch-{{es_version}}/config/elasticsearch.yml
+ 
+ - name: Stating Elasticsearch Service
+   service: name=elasticsearch state=started enabled=yes 

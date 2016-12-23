@@ -1,0 +1,30 @@
+es_version: 2.4.3
+es_root_dir: /usr/local/elasticsearch/
+es_download_url: https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch
+start_command: "{{ es_root_dir }}elasticsearch-{{ es_version }}/bin/elasticsearch"
+es_plugins: [license,marvel-agent,watcher,graph,lmenezes/elasticsearch-kopf]
+
+cluster:
+ - name: for_search
+
+node:
+ - master: true
+ - data: true
+path:
+ - data: /data/elasticsearch/data
+ - log: /data/elasticsearch/log 
+ 
+network: 
+ - bind_host: localhost
+ - publish_host: localhost
+ - host: localhost
+
+
+transport:
+ - tcp:
+    - port: 9300
+    - compress: true
+
+http:
+ - port: 9200
+ - max_content_length: 100mb
